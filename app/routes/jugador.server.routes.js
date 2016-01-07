@@ -17,10 +17,10 @@ module.exports = function(app) {
         .delete(jugador.borrar);
 
     app.route('/api/jugador/modificar/info/:id')
-        .put(jugador.modificarInfo);
+        .post(jugador.modificarInfo);
 
     app.route('/api/jugador/modificar/puntos/:id')
-        .put(jugador.modificarPuntos);    
+        .post(jugador.modificarPuntos);    
 
     app.route('/api/jugador/listado')
         .get(jugador.listado);

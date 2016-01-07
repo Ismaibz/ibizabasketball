@@ -8,6 +8,7 @@
     mongoose = require('mongoose'),
     crypto = require('crypto'),
     Jugador = mongoose.model('Jugador'),
+    fs = require('fs'),
     utils = require('./utils.js');
 
 var SERVER_PATH = '/var/www/html/ibizabasketball.tk/images/profiles/';
@@ -34,7 +35,8 @@ exports.nuevo = function(req, res) {
         	ret.error = err.code;
         	ret.error_message = err;
             return res.status(200).jsonp(ret);	
-        } else {                	
+        } else {     
+        	var ret = {};           	
         	ret.error = 0;
             return res.status(200).jsonp(ret);	
         }
@@ -58,7 +60,8 @@ exports.borrar = function(req, res) {
 	}); 
 };
 
-exports.modificarInfo = function(req, res) {   
+exports.modificarInfo = function(req, res) { 
+	console.log(req.body);  
 	var query = Jugador.findById(req.params.id);
 	query.exec(function (err, jugador) {
 
@@ -104,7 +107,7 @@ exports.modificarPuntos = function(req, res) {
 	query.exec(function (err, jugador) {
 		
 		if (req.body.puntos){
-			jugador.puntos += req.body.puntos;
+			jugador.puntos += parseInt(req.body.puntos);
 		}
 
 		jugador.save(function(err) {
@@ -123,7 +126,7 @@ exports.modificarPuntos = function(req, res) {
 };
 
 exports.listado = function(req, res) {   
-	var query = Jugador.find().populate('equipo', 'nombre _id imagenPerfil').sort('puntos');
+	var query = Jugador.find().populate('equipo', 'nombre _id imagenPerfil').sort('-puntos');
 	query.exec(function (err, jugadores) {
 		return res.status(200).jsonp(jugadores);		
 	}); 
