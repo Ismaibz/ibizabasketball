@@ -17,15 +17,15 @@ module.exports = function(app) {
         .delete(partido.borrar);
 
     app.route('/api/partido/modificar/:id')
-        .put(partido.modificar);
+        .post(partido.modificar);
 
     app.route('/api/partido/listado')
         .get(partido.listado);
 
-    app.route('/api/partido/estado')
+    app.route('/api/partido/estado/:id')
         .post(partido.cambiarEstado);
 
-    app.route('/api/partido/marcador')
+    app.route('/api/partido/marcador/:id')
         .post(partido.marcador);
 
 };

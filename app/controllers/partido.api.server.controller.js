@@ -22,7 +22,9 @@ function base64_decode(base64str, file) {
 }
 
 exports.nuevo = function(req, res) {
-	var partido = new Partido(req.body);	
+	var partido = new Partido(req.body);
+	partido.equipoLocal.id = req.body.equipoLocal;
+	partido.equipoVisitante.id = req.body.equipoVisitante;	
     partido.save(function(err) {
         if (err) {
             var ret = {};
@@ -55,7 +57,7 @@ exports.nuevo = function(req, res) {
 exports.leer = function(req, res) {   
 	var query = Partido.findById(req.params.id).populate('equipoLocal.id').populate('equipoVisitante.id');
 	query.exec(function (err, partido) {			
-		return res.status(200).jsonp(equipo); 
+		return res.status(200).jsonp(partido); 
 	}); 
 };
 
@@ -82,30 +84,30 @@ exports.modificar = function(req, res) {
 		}
 
 		if (req.body.jugado){
-			equipo.jugado = req.body.jugado;
+			partido.jugado = req.body.jugado;
 		}
 
 		if (req.body.estado){
-			equipo.estado = req.body.estado;
+			partido.estado = req.body.estado;
 		}
 
 		if (req.body.equipoLocal){
-			equipo.equipoLocal.id = req.body.equipoLocal;
+			partido.equipoLocal.id = req.body.equipoLocal;
 		}
 
 		if (req.body.puntosEquipoLocal){
-			equipo.equipoLocal.puntos = req.body.puntosEquipoLocal;
+			partido.equipoLocal.puntos = req.body.puntosEquipoLocal;
 		}
 
 		if (req.body.equipoVisitante){
-			equipo.equipoVisitante.id = req.body.equipoVisitante;
+			partido.equipoVisitante.id = req.body.equipoVisitante;
 		}
 
 		if (req.body.puntosEquipoVisitante){
-			equipo.equipoVisitante.puntos = req.body.puntosEquipoVisitante;
+			partido.equipoVisitante.puntos = req.body.puntosEquipoVisitante;
 		}
 
-		equipo.save(function(err) {
+		partido.save(function(err) {
     		if (err) {
 	            var ret = {};
 	        	ret.error = err.code;

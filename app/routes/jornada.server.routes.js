@@ -17,8 +17,8 @@ module.exports = function(app) {
         .delete(jornada.borrar);
 
     app.route('/api/jornada/modificar/:id')
-        .put(jornada.modificar);
+        .post(jornada.modificar);
 
     app.route('/api/jornada/listado/')
-        .put(jornada.listado);
+        .get(jornada.listado);
 };

@@ -9,7 +9,8 @@
     crypto = require('crypto'),
     Jugador = mongoose.model('Jugador'),
     Equipo = mongoose.model('Equipo'),
-    Partido = mongoose.model('Partido'),
+    Partido = mongoose.model('Partido'),    
+    fs = require('fs'),
     utils = require('./utils.js');
 
 var SERVER_PATH = '/var/www/html/ibizabasketball.tk/images/profiles/';
@@ -22,12 +23,14 @@ function base64_decode(base64str, file) {
 
 exports.nuevo = function(req, res) {
 	var equipo = new Equipo(req.body);	
+
+	equipo.estadisticas = {};
 	equipo.estadisticas.puntos = 0;
-	equipo.victorias.puntos = 0;
-	equipo.derrotas.puntos = 0;
+	equipo.estadisticas.victorias = 0;
+	equipo.estadisticas.derrotas = 0;
 
 	if (req.body.imagenPerfil){
-            var nombreImagen = jugador._id + ".jpg";
+            var nombreImagen = equipo._id + ".jpg";
             equipo.imagenPerfil = SERVER_URL + nombreImagen;
             base64_decode(req.body.imagenPerfil, SERVER_PATH + nombreImagen); 
     }	
@@ -38,7 +41,8 @@ exports.nuevo = function(req, res) {
         	ret.error = err.code;
         	ret.error_message = err;
             return res.status(200).jsonp(ret);	
-        } else {                	
+        } else {     
+        	var ret = {};           	
         	ret.error = 0;
             return res.status(200).jsonp(ret);	
         }
@@ -132,7 +136,7 @@ exports.modificarPuntos = function(req, res) {
 };
 
 exports.listado = function(req, res) {   
-	var query = Equipo.find();
+	var query = Equipo.find().sort('-estadisticas.puntos');
 	query.exec(function (err, equipos) {
 		return res.status(200).jsonp(equipos);		
 	}); 
@@ -145,7 +149,7 @@ exports.aniadirJugador = function(req, res) {
 		if (req.body.jugador){
 			var jugador = {};
 			jugador._id = req.body.jugador;
-			equipo.jugador.push(jugador);
+			equipo.jugadores.push(jugador);
 		}
 
 		equipo.save(function(err) {
@@ -154,21 +158,40 @@ exports.aniadirJugador = function(req, res) {
 	        	ret.error = err.code;
 	        	ret.error_message = err;
 	            return res.status(200).jsonp(ret);	
-	        } else {  
-	        	var ret = {};              	
-	        	ret.error = 0;
-	            return res.status(200).jsonp(ret);	
-	        }
+	        } else { 
+	        	var query = Jugador.findById(req.body.jugador);
+				query.exec(function (err, jugador) {
+		
+					jugador.equipo = req.params.id;
+
+					jugador.save(function(err) {
+		    			if (err) {
+				            var ret = {};
+				        	ret.error = err.code;
+				        	ret.error_message = err;
+				            return res.status(200).jsonp(ret);	
+				        } else {  
+				        	var ret = {};              	
+				        	ret.error = 0;
+				            return res.status(200).jsonp(ret);	
+				        }
+				    });
+				});    			
+			} 
+	        	
 		});    			
-	}); 
+	});
+
 };
 
 exports.eliminarJugador = function(req, res) {   
 	var query = Equipo.findById(req.params.id);
+	var queryJ = Jugador.findById(req.body.jugador);
+
 	query.exec(function (err, equipo) {
 		
-		if (req.body.jugador){
-			equipo.jugadores.id(req.body.jugador).remove();
+		if (req.body.jugador_array){
+			equipo.jugadores.id(req.body.jugador_array).remove();
 		}
 
 		equipo.save(function(err) {
@@ -178,17 +201,21 @@ exports.eliminarJugador = function(req, res) {
 	        	ret.error_message = err;
 	            return res.status(200).jsonp(ret);	
 	        } else {  
+	        	queryJ.exec(function (err, jugador) {		
+					jugador.equipo = null;
+					jugador.save();    			
+				}); 
 	        	var ret = {};              	
 	        	ret.error = 0;
 	            return res.status(200).jsonp(ret);	
 	        }
 		});    			
-	}); 
+	}); 	
 };
 
 exports.proximos = function(req, res) {   
-	var query = Partido.findById()
-		.or([{'equipoLocal.id' : req.param.id},{'equipoVisitante.id' : req.param.id}])		
+	var query = Partido.find()
+		//.or([{'equipoLocal.id' : req.param.id},{'equipoVisitante.id' : req.param.id}])		
 		.where('jugado').equals(0)
 		.sort('-date');
 	query.exec(function (err, partidos) {		
